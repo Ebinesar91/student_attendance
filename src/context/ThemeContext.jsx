@@ -1,0 +1,37 @@
+import React, { createContext, useContext, useState, useEffect } from 'react'
+
+const ThemeContext = createContext()
+
+export const useTheme = () => useContext(ThemeContext)
+
+export const ThemeProvider = ({ children }) => {
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('school_attendance_theme')
+    if (savedTheme) {
+      return savedTheme === 'dark'
+    }
+    // Default to dark mode as requested in web application development instructions
+    return true
+  })
+
+  useEffect(() => {
+    const root = window.document.documentElement
+    if (darkMode) {
+      root.classList.add('dark')
+      localStorage.setItem('school_attendance_theme', 'dark')
+    } else {
+      root.classList.remove('dark')
+      localStorage.setItem('school_attendance_theme', 'light')
+    }
+  }, [darkMode])
+
+  const toggleTheme = () => {
+    setDarkMode(prev => !prev)
+  }
+
+  return (
+    <ThemeContext.Provider value={{ darkMode, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
