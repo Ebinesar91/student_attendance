@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
-import { FiCheck, FiX, FiCalendar, FiPlus, FiMail, FiUserCheck, FiBell } from 'react-icons/fi'
+import { FiCheck, FiX, FiCalendar, FiPlus, FiMail, FiUserCheck, FiBell, FiTrash2 } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
 import { sendSMS } from '../services/notificationService'
 
@@ -134,6 +134,45 @@ export const StudentAttendance = () => {
     } catch (err) {
       console.error('Delete notification failed:', err)
       toast.error('Failed to delete notification log entry.')
+      setLoading(false)
+    }
+  }
+
+  // Clear all today's notification logs
+  const handleClearAllNotifications = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL parent alert logs for today? This cannot be undone!")) {
+      return
+    }
+
+    setLoading(true)
+    const todayStr = new Date().toISOString().split('T')[0]
+
+    if (isDemo) {
+      const localNotifs = JSON.parse(localStorage.getItem('school_demo_notifications') || '[]')
+      const updated = localNotifs.filter(n => !n.sent_at.startsWith(todayStr))
+      localStorage.setItem('school_demo_notifications', JSON.stringify(updated))
+      setNotifications([])
+      toast.success("Today's notification logs cleared locally!")
+      setLoading(false)
+      return
+    }
+
+    try {
+      const startOfDay = `${todayStr}T00:00:00Z`
+      const endOfDay = `${todayStr}T23:59:59Z`
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .gte('sent_at', startOfDay)
+        .lte('sent_at', endOfDay)
+
+      if (error) throw error
+      toast.success("Today's notification logs cleared from database!")
+      setNotifications([])
+    } catch (err) {
+      console.error('Clear notifications failed:', err)
+      toast.error('Failed to clear notification logs.')
+    } finally {
       setLoading(false)
     }
   }
@@ -398,9 +437,21 @@ export const StudentAttendance = () => {
           </>
         ) : (
           <>
-            <div className="p-5 border-b border-zinc-150 dark:border-zinc-800">
-              <h3 className="font-bold text-zinc-900 dark:text-zinc-50">Sent Notification Logs</h3>
-              <p className="text-xs text-zinc-550 mt-0.5">Alerts dispatched to parents following scans today</p>
+            <div className="p-5 border-b border-zinc-150 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/10">
+              <div>
+                <h3 className="font-bold text-zinc-900 dark:text-zinc-50">Sent Notification Logs</h3>
+                <p className="text-xs text-zinc-550 mt-0.5">Alerts dispatched to parents following scans today</p>
+              </div>
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAllNotifications}
+                  type="button"
+                  className="bg-rose-50 hover:bg-rose-100 dark:bg-rose-955/20 text-rose-600 dark:text-rose-455 font-bold py-1.5 px-3 rounded-lg text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <FiTrash2 className="w-3.5 h-3.5" />
+                  Clear Logs
+                </button>
+              )}
             </div>
 
             <div className="p-5 space-y-3 max-h-[500px] overflow-y-auto">
