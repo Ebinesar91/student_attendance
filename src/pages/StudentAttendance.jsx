@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
-import { FiCheck, FiX, FiCalendar, FiPlus, FiMail, FiUserCheck, FiBell, FiTrash2 } from 'react-icons/fi'
+import { FiCheck, FiX, FiCalendar, FiPlus, FiMail, FiUserCheck, FiBell, FiTrash2, FiPrinter } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
 import { sendSMS } from '../services/notificationService'
 
@@ -437,38 +437,60 @@ export const StudentAttendance = () => {
           </>
         ) : (
           <>
-            <div className="p-5 border-b border-zinc-150 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/10">
+            <div className="p-5 border-b border-zinc-150 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/10 no-print">
               <div>
                 <h3 className="font-bold text-zinc-900 dark:text-zinc-50">Sent Notification Logs</h3>
                 <p className="text-xs text-zinc-550 mt-0.5">Alerts dispatched to parents following scans today</p>
               </div>
-              {notifications.length > 0 && (
-                <button
-                  onClick={handleClearAllNotifications}
-                  type="button"
-                  className="bg-rose-50 hover:bg-rose-100 dark:bg-rose-955/20 text-rose-600 dark:text-rose-455 font-bold py-1.5 px-3 rounded-lg text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
-                >
-                  <FiTrash2 className="w-3.5 h-3.5" />
-                  Clear Logs
-                </button>
-              )}
+              <div className="flex gap-2">
+                {notifications.length > 0 && (
+                  <>
+                    <button
+                      onClick={() => window.print()}
+                      type="button"
+                      className="bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold py-1.5 px-3 rounded-lg text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                    >
+                      <FiPrinter className="w-3.5 h-3.5" />
+                      Print / PDF
+                    </button>
+                    <button
+                      onClick={handleClearAllNotifications}
+                      type="button"
+                      className="bg-rose-50 hover:bg-rose-100 dark:bg-rose-955/20 text-rose-600 dark:text-rose-455 font-bold py-1.5 px-3 rounded-lg text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                    >
+                      <FiTrash2 className="w-3.5 h-3.5" />
+                      Clear Logs
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
-            <div className="p-5 space-y-3 max-h-[500px] overflow-y-auto">
+            {/* Print-Only Professional Report Header */}
+            <div className="hidden print:block p-6 border-b-2 border-zinc-900 mb-6 bg-white text-black">
+              <h1 className="text-2xl font-black tracking-tight">{localStorage.getItem('school_setting_name') || 'Apex Academy'}</h1>
+              <h2 className="text-xs font-bold text-zinc-700 mt-1 uppercase tracking-widest">Dispatched Parent Alerts Sent Log Report</h2>
+              <div className="flex justify-between items-center mt-4 text-xs text-zinc-500 font-medium">
+                <span>Date: {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span>Total Dispatched Alerts: {notifications.length}</span>
+              </div>
+            </div>
+
+            <div className="p-5 space-y-3 max-h-[500px] overflow-y-auto print:max-h-none print:overflow-visible print:p-0 print:space-y-4">
               {notifications.length > 0 ? (
                 notifications.map((notif) => (
-                  <div key={notif.id} className="flex gap-3 items-start p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-755 dark:text-zinc-350 relative group">
-                    <FiMail className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
-                    <div className="flex-grow pr-6">
-                      <p className="font-medium text-zinc-850 dark:text-zinc-200">{notif.message}</p>
-                      <span className="text-[10px] text-zinc-555 mt-1 block">
-                        Dispatched: {new Date(notif.sent_at).toLocaleTimeString()} • Status: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{notif.status}</span>
+                  <div key={notif.id} className="flex gap-3 items-start p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-755 dark:text-zinc-350 relative group print:bg-white print:border-zinc-300 print:text-black print:shadow-none">
+                    <FiMail className="w-5 h-5 text-blue-600 mt-0.5 shrink-0 print:text-zinc-750" />
+                    <div className="flex-grow pr-6 print:pr-0">
+                      <p className="font-medium text-zinc-850 dark:text-zinc-200 print:text-black">{notif.message}</p>
+                      <span className="text-[10px] text-zinc-555 mt-1 block print:text-zinc-600">
+                        Dispatched: {new Date(notif.sent_at).toLocaleTimeString()} • Status: <span className="text-emerald-600 dark:text-emerald-400 font-bold print:text-black">{notif.status}</span>
                       </span>
                     </div>
                     <button
                       onClick={() => handleDeleteNotification(notif.id)}
                       type="button"
-                      className="absolute top-3 right-3 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-955/20 transition-colors p-1 rounded-md cursor-pointer"
+                      className="absolute top-3 right-3 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-955/20 transition-colors p-1 rounded-md cursor-pointer no-print"
                       title="Delete alert log entry"
                     >
                       <FiX className="w-4.5 h-4.5" />
