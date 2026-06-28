@@ -224,8 +224,8 @@ export const StudentAttendance = () => {
 
     const notifMsg = `Apex Alert: ${studentNameVal} was manually marked ${status} today at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`
 
-    // Send SMS notification
-    await sendSMS(parentMobileVal, notifMsg)
+    // Send SMS notification and verify status
+    const sentSuccessfully = await sendSMS(parentMobileVal, notifMsg)
 
     // 2. Insert attendance
     if (isDemo) {
@@ -248,16 +248,18 @@ export const StudentAttendance = () => {
       })
       localStorage.setItem('school_demo_student_attendance', JSON.stringify(localLogs))
       
-      // Trigger notification log
-      const localNotifs = JSON.parse(localStorage.getItem('school_demo_notifications') || '[]')
-      localNotifs.unshift({
-        id: Math.random().toString(),
-        student_id: studentId,
-        message: notifMsg,
-        sent_at: nowTimestamp,
-        status: 'Sent'
-      })
-      localStorage.setItem('school_demo_notifications', JSON.stringify(localNotifs))
+      // Trigger notification log ONLY IF dispatch succeeded
+      if (sentSuccessfully) {
+        const localNotifs = JSON.parse(localStorage.getItem('school_demo_notifications') || '[]')
+        localNotifs.unshift({
+          id: Math.random().toString(),
+          student_id: studentId,
+          message: notifMsg,
+          sent_at: nowTimestamp,
+          status: 'Sent'
+        })
+        localStorage.setItem('school_demo_notifications', JSON.stringify(localNotifs))
+      }
 
       toast.success('Manual attendance saved!')
     } else {
@@ -273,12 +275,14 @@ export const StudentAttendance = () => {
 
         if (error) throw error
 
-        // Notification insertion
-        await supabase.from('notifications').insert([{
-          student_id: studentId,
-          message: notifMsg,
-          status: 'Sent'
-        }])
+        // Notification insertion ONLY IF dispatch succeeded
+        if (sentSuccessfully) {
+          await supabase.from('notifications').insert([{
+            student_id: studentId,
+            message: notifMsg,
+            status: 'Sent'
+          }])
+        }
 
         toast.success('Manual attendance saved!')
       } catch (err) {

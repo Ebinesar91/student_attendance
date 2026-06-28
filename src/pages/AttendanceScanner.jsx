@@ -184,28 +184,30 @@ export const AttendanceScanner = () => {
     // 3. Send Notification to Parents (Twilio SMS / Simulation Log)
     const notifMsg = `Apex Academy Alert: Your child ${student.student_name} registered their ${type === 'Entry' ? 'ENTRY' : 'EXIT'} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`
     
-    // Call SMS notification service
-    await sendSMS(student.parent_mobile, notifMsg)
+    // Call SMS notification service and check status
+    const sentSuccessfully = await sendSMS(student.parent_mobile, notifMsg)
 
-    if (isDemo) {
-      const localNotifs = JSON.parse(localStorage.getItem('school_demo_notifications') || '[]')
-      localNotifs.unshift({
-        id: Math.random().toString(),
-        student_id: id,
-        message: notifMsg,
-        sent_at: nowTimestamp,
-        status: 'Sent'
-      })
-      localStorage.setItem('school_demo_notifications', JSON.stringify(localNotifs))
-    } else {
-      try {
-        await supabase.from('notifications').insert([{
+    if (sentSuccessfully) {
+      if (isDemo) {
+        const localNotifs = JSON.parse(localStorage.getItem('school_demo_notifications') || '[]')
+        localNotifs.unshift({
+          id: Math.random().toString(),
           student_id: id,
           message: notifMsg,
+          sent_at: nowTimestamp,
           status: 'Sent'
-        }])
-      } catch (err) {
-        console.error('Insert notification error:', err)
+        })
+        localStorage.setItem('school_demo_notifications', JSON.stringify(localNotifs))
+      } else {
+        try {
+          await supabase.from('notifications').insert([{
+            student_id: id,
+            message: notifMsg,
+            status: 'Sent'
+          }])
+        } catch (err) {
+          console.error('Insert notification error:', err)
+        }
       }
     }
   }
