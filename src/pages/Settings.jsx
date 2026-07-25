@@ -26,12 +26,12 @@ export const Settings = () => {
   const [retentionDays] = useState(7)
   const [pruning, setPruning] = useState(false)
 
-  // Notification configurations
   const [activeChannel, setActiveChannel] = useState(() => localStorage.getItem('school_setting_active_channel') || 'whatsapp')
   const [telegramBotToken, setTelegramBotToken] = useState(() => localStorage.getItem('school_setting_tg_token') || '')
   const [telegramChatId, setTelegramChatId] = useState(() => localStorage.getItem('school_setting_tg_chat') || '')
   const [resendApiKey, setResendApiKey] = useState(() => localStorage.getItem('school_setting_resend_key') || '')
   const [senderEmail, setSenderEmail] = useState(() => localStorage.getItem('school_setting_sender_email') || 'alerts@school.com')
+  const [whatsappGatewayUrl, setWhatsappGatewayUrl] = useState(() => localStorage.getItem('school_setting_whatsapp_gateway_url') || 'http://localhost:3005')
 
   const handlePruneLogs = async (wipeAll = false) => {
     const confirmMsg = wipeAll 
@@ -101,6 +101,7 @@ export const Settings = () => {
     localStorage.setItem('school_setting_tg_chat', telegramChatId)
     localStorage.setItem('school_setting_resend_key', resendApiKey)
     localStorage.setItem('school_setting_sender_email', senderEmail)
+    localStorage.setItem('school_setting_whatsapp_gateway_url', whatsappGatewayUrl)
     toast.success('System configuration updated successfully!')
   }
 
@@ -258,6 +259,28 @@ export const Settings = () => {
                 </select>
               </div>
             </div>
+
+            {activeChannel === 'whatsapp-auto' && (
+              <div className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-150 dark:border-emerald-900/40 p-4 rounded-xl space-y-4 animate-scale-up">
+                <h4 className="text-xs font-bold text-emerald-800 dark:text-emerald-450 flex items-center gap-1.5 uppercase tracking-wider">
+                  <FiMessageCircle className="w-4 h-4" /> WhatsApp Gateway Configuration
+                </h4>
+                <div className="flex flex-col">
+                  <label className="text-[10px] font-semibold text-zinc-555 mb-1">WhatsApp Gateway Server URL</label>
+                  <input
+                    type="url"
+                    placeholder="e.g. http://localhost:3005 or https://your-tunnel.ngrok-free.app"
+                    value={whatsappGatewayUrl}
+                    onChange={(e) => setWhatsappGatewayUrl(e.target.value)}
+                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-850 rounded-lg px-3 py-2 text-xs shadow-sm focus:outline-none text-zinc-950 dark:text-zinc-100"
+                  />
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-normal">
+                  Default is <code>http://localhost:3005</code>. If you are accessing this portal on mobile devices or tablets, 
+                  start ngrok and paste your secure <strong>HTTPS forwarding URL</strong> (e.g. <code>https://nondemonstratively-skaldic-marcela.ngrok-free.dev</code>) above!
+                </p>
+              </div>
+            )}
 
             {activeChannel === 'telegram' && (
               <div className="bg-blue-50/50 dark:bg-blue-950/10 border border-blue-150 dark:border-blue-900/40 p-4 rounded-xl space-y-4 animate-scale-up">

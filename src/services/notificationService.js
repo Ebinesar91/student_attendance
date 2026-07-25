@@ -80,7 +80,8 @@ export const sendSMS = async (student, message) => {
     }
 
     try {
-      const response = await fetch('http://localhost:3005/send-message', {
+      const gatewayUrl = localStorage.getItem('school_setting_whatsapp_gateway_url') || 'http://localhost:3005'
+      const response = await fetch(`${gatewayUrl}/send-message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
