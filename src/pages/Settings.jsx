@@ -361,18 +361,6 @@ export const Settings = () => {
               </div>
             )}
 
-            {activeChannel === 'whatsapp-auto' && (
-              <div className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-150 dark:border-emerald-900/40 p-4 rounded-xl space-y-2 animate-scale-up">
-                <h4 className="text-xs font-bold text-emerald-800 dark:text-emerald-455 flex items-center gap-1.5 uppercase tracking-wider">
-                  <FiMessageCircle className="w-4 h-4" /> WhatsApp Auto-Send Local Gateway
-                </h4>
-                <p className="text-[10px] text-emerald-800 dark:text-emerald-400 leading-relaxed font-medium">
-                  Sends messages completely automatically in the background using your local gateway. 
-                  Make sure you have started the local node service inside <code>whatsapp-gateway/</code> and scanned the QR code in your terminal.
-                </p>
-              </div>
-            )}
-
             <button
               type="submit"
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs shadow transition-colors cursor-pointer"
